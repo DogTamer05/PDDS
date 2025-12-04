@@ -61,19 +61,28 @@ body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
 <script>
 let html5QrCode = null;
 
-// Start the scanner
+// Start the scanner using back camera if available
 Html5Qrcode.getCameras().then(cameras => {
     if(cameras && cameras.length){
-        const cameraId = cameras[0].id;
+        // Try to pick back camera
+        const backCamera = cameras.find(cam => cam.label.toLowerCase().includes("back")) || cameras[0];
+
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode.start(
-            cameraId,
-            { fps: 10, qrbox: 250 },
+            backCamera.id,               // Camera ID
+            { fps: 10, qrbox: 250 },    // Scanner config
             decodedText => onScanSuccess(decodedText),
-            errorMessage => { /* optional: console.log(errorMessage); */ }
+            errorMessage => { /* optional error handling */ }
         ).catch(err => console.error("Unable to start scanner:", err));
     } else {
-        alert("No cameras found.");
+        // Fallback using facingMode
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            { fps: 10, qrbox: 250 },
+            decodedText => onScanSuccess(decodedText),
+            errorMessage => { console.warn(errorMessage); }
+        ).catch(err => console.error("Unable to start scanner:", err));
     }
 }).catch(err => console.error("Camera access error:", err));
 
@@ -100,10 +109,9 @@ async function onScanSuccess(decodedText){
                 const data = await response.json();
 
                 if(data.redirect_url){
-                    // Redirect to the returned page
                     setTimeout(() => {
                         window.location.href = data.redirect_url;
-                    }, 800); // optional short delay to show scanned text
+                    }, 800); // short delay to show scanned text
                 } else {
                     alert("No page assigned for this QR code.");
                 }
