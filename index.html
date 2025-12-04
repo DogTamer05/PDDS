@@ -14,8 +14,15 @@ body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
   width: 100%;
   min-height: 350px;
 }
-#qr-wrapper{
+#qr-wrapper {
   padding:20px;
+}
+#scan-result {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: green;
 }
 </style>
 
@@ -43,39 +50,74 @@ body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
 
     <div id="qr-wrapper" class="w3-center">
       <div id="qr-reader"></div>
+      <div id="scan-result" class="hidden"></div>
     </div>
   </div>
 </div>
 
-<!-- Right Sidebar (kept slightly as original design) -->
+<!-- Right Sidebar -->
 <div class="w3-col l4">
   <div class="w3-card w3-margin w3-margin-top">
     <div class="w3-container w3-white">
       <h4><b>Instructions</b></h4>
-      <p>Scan codes to open unique pages.<br>You may define different links for each QR value.</p>
+      <p>Scan QR codes to open unique pages.<br>You may define different links for each QR value.</p>
     </div>
   </div><hr>
-
 </div>
 </div>
-
 </div>
 
 <script>
-// Redirect Mapping Example
-function onScanSuccess(decodedText) {
+let html5QrCode = null;
+
+// Map scanned QR values to pages
+const pageMap = {
+    "page1": "page1.html",
+    "page2": "page2.html",
+    "page3": "page3.html"
+};
+
+// Start the scanner
+Html5Qrcode.getCameras().then(cameras => {
+    if(cameras && cameras.length){
+        const cameraId = cameras[0].id;
+        html5QrCode = new Html5Qrcode("qr-reader");
+        html5QrCode.start(
+            cameraId,
+            { fps: 10, qrbox: 250 },
+            decodedText => onScanSuccess(decodedText),
+            errorMessage => {
+                // optional: console.log("Scan error", errorMessage);
+            }
+        ).catch(err => console.error("Unable to start scanner:", err));
+    } else {
+        alert("No cameras found.");
+    }
+}).catch(err => console.error("Camera access error:", err));
+
+// Handle scan success
+function onScanSuccess(decodedText){
     console.log("Scanned:", decodedText);
 
-    // Example routing
-    if (decodedText === "page1") window.location.href = "page1.html";
-    else if (decodedText === "page2") window.location.href = "page2.html";
-    else if (decodedText.startsWith("http")) window.open(decodedText, "_self");
-    else alert("Unknown QR: " + decodedText);
+    if(html5QrCode){
+        html5QrCode.stop().then(() => {
+            // Stop successful, safe to modify DOM
+            document.getElementById("scan-result").classList.remove("hidden");
+            document.getElementById("scan-result").innerText = `Scanned: ${decodedText}`;
+            
+            // Redirect if known page
+            if(pageMap[decodedText]){
+                setTimeout(() => {
+                    window.location.href = pageMap[decodedText];
+                }, 1000); // 1 second delay to show message
+            } else if(decodedText.startsWith("http")){
+                window.open(decodedText, "_self");
+            } else {
+                alert("Unknown QR code: " + decodedText);
+            }
+        }).catch(err => console.error("Failed to stop scanner:", err));
+    }
 }
-
-// Start Camera
-new Html5QrcodeScanner("qr-reader", { fps:10, qrbox:250 })
-.render(onScanSuccess);
 </script>
 
 </body>
