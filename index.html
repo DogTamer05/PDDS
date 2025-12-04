@@ -10,10 +10,37 @@
 body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
 
 /* Center the scanner card and resize */
-#qr-reader { width: 100%; min-height: 350px; }
+#qr-reader { width: 100%; min-height: 350px; position: relative; }
 #qr-wrapper { padding:20px; }
 #scan-result { margin-top: 20px; text-align: center; font-size: 1.2em; font-weight: bold; color: green; }
 .hidden { display:none; }
+
+/* Overlay for QR aiming */
+#overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; /* allow clicks to pass through */
+}
+
+#overlay::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 500px; height: 500px;
+  transform: translate(-50%, -50%);
+  border: 4px solid #00FF00;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Optional: dim outside the box */
+#overlay::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  clip-path: inset( calc(50% - 125px) calc(50% - 125px) calc(50% - 125px) calc(50% - 125px) );
+}
 </style>
 
 <!-- QR Scanner Library -->
@@ -38,8 +65,9 @@ body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
         <p class="w3-center">Align your code in the box below.</p>
       </div>
 
-      <div id="qr-wrapper" class="w3-center">
+      <div id="qr-wrapper" class="w3-center" style="position: relative;">
         <div id="qr-reader"></div>
+        <div id="overlay"></div> <!-- Overlay added here -->
         <div id="scan-result" class="hidden"></div>
       </div>
     </div>
@@ -64,22 +92,20 @@ let html5QrCode = null;
 // Start the scanner using back camera if available
 Html5Qrcode.getCameras().then(cameras => {
     if(cameras && cameras.length){
-        // Try to pick back camera
         const backCamera = cameras.find(cam => cam.label.toLowerCase().includes("back")) || cameras[0];
 
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode.start(
-            backCamera.id,               // Camera ID
-            { fps: 10, qrbox: 250 },    // Scanner config
+            backCamera.id,
+            { fps: 10, qrbox: 500 },
             decodedText => onScanSuccess(decodedText),
             errorMessage => { /* optional error handling */ }
         ).catch(err => console.error("Unable to start scanner:", err));
     } else {
-        // Fallback using facingMode
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode.start(
-            { facingMode: "environment" }, 
-            { fps: 10, qrbox: 250 },
+            { facingMode: "environment" },
+            { fps: 10, qrbox: 500 },
             decodedText => onScanSuccess(decodedText),
             errorMessage => { console.warn(errorMessage); }
         ).catch(err => console.error("Unable to start scanner:", err));
@@ -97,7 +123,6 @@ async function onScanSuccess(decodedText){
             resultDiv.innerText = `Scanned: ${decodedText}`;
 
             try {
-                // Fetch redirect URL from Supabase Edge Function
                 const response = await fetch(
                     "https://ttdahvmsqjfarktnnxui.supabase.co/functions/v1/rapid-endpoint",
                     {
@@ -111,7 +136,7 @@ async function onScanSuccess(decodedText){
                 if(data.redirect_url){
                     setTimeout(() => {
                         window.location.href = data.redirect_url;
-                    }, 800); // short delay to show scanned text
+                    }, 800);
                 } else {
                     alert("No page assigned for this QR code.");
                 }
