@@ -26,11 +26,21 @@ body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  width: 500px; height: 500px;
+  width: 250px; height: 250px;
   transform: translate(-50%, -50%);
-  border: 4px solid #00FF00;
-  border-radius: 8px;
+  border: 3px solid white;       /* white outline */
+  border-radius: 12px;           /* slightly rounded corners */
   box-sizing: border-box;
+  box-shadow: 0 0 15px rgba(255,255,255,0.5); /* subtle glow */
+}
+
+#overlay::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  /* optional semi-transparent dimming outside */
+  background: rgba(0,0,0,0.2);
+  clip-path: inset(calc(50% - 125px) calc(50% - 125px) calc(50% - 125px) calc(50% - 125px));
 }
 
 /* Optional: dim outside the box */
@@ -97,7 +107,7 @@ Html5Qrcode.getCameras().then(cameras => {
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode.start(
             backCamera.id,
-            { fps: 10, qrbox: 500 },
+            { fps: 10, qrbox: 250 },
             decodedText => onScanSuccess(decodedText),
             errorMessage => { /* optional error handling */ }
         ).catch(err => console.error("Unable to start scanner:", err));
@@ -105,7 +115,7 @@ Html5Qrcode.getCameras().then(cameras => {
         html5QrCode = new Html5Qrcode("qr-reader");
         html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: 500 },
+            { fps: 10, qrbox: 250 },
             decodedText => onScanSuccess(decodedText),
             errorMessage => { console.warn(errorMessage); }
         ).catch(err => console.error("Unable to start scanner:", err));
