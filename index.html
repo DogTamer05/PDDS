@@ -92,12 +92,13 @@ async function onScanSuccess(decodedText) {
 
     if (html5QrCode) {
         // Immediately open a popup (temporary blank) to satisfy browser popup policy
-        const popup = window.open("", "_blank", "width=800,height=600,resizable=yes,scrollbars=yes");
+        // inside onScanSuccess
+        const popup = window.open("about:blank", "_blank", "width=800,height=600");
         if (!popup) {
             alert("⚠ Popup blocked! Please allow popups for this site.");
             return;
         }
-
+        
         html5QrCode.stop().then(async () => {
             const resultDiv = document.getElementById("scan-result");
             resultDiv.classList.remove("hidden");
