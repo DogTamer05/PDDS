@@ -102,7 +102,7 @@ async function onScanSuccess(decodedText){
                     {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ code: decodedText })
+                        body: JSON.stringify({ code: decodedText.trim() })
                     }
                 );
 
@@ -114,6 +114,7 @@ async function onScanSuccess(decodedText){
                 if(data.error){
                     let msg = `❌ Error: ${data.error}`;
 
+                    alert(`Scanned text: "${decodedText}"\nLength: ${decodedText.length}`);
                     if(data.details) msg += `\nDetails: ${data.details}`;
                     if(data.code) msg += `\nQR: ${data.code}`;
                     if(data.equipment) msg += `\nEquipment: ${data.equipment}`;
