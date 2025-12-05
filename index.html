@@ -105,18 +105,35 @@ async function onScanSuccess(decodedText){
                         body: JSON.stringify({ code: decodedText })
                     }
                 );
+
                 const data = await response.json();
 
+                console.log("Server Response:", data); // Debugging
+
+                // 💡 Detailed error messages
+                if(data.error){
+                    let msg = `❌ Error: ${data.error}`;
+
+                    if(data.details) msg += `\nDetails: ${data.details}`;
+                    if(data.code) msg += `\nQR: ${data.code}`;
+                    if(data.equipment) msg += `\nEquipment: ${data.equipment}`;
+
+                    alert(msg);
+                    return;
+                }
+
                 if(data.redirect_url){
+                    alert("Redirecting to assigned page...");
                     setTimeout(() => {
                         window.location.href = data.redirect_url;
                     }, 800);
                 } else {
-                    alert("No page assigned for this QR code.");
+                    alert("⚠ QR found, but redirect_url is missing in database.");
                 }
+
             } catch(err){
                 console.error("Error fetching redirect URL:", err);
-                alert("Error fetching redirect info from server.");
+                alert(`🚫 Request failed: ${err.message}`);
             }
         }).catch(err => console.error("Failed to stop scanner:", err));
     }
