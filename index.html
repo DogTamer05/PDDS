@@ -103,7 +103,7 @@ async function onScanSuccess(decodedText){
                         method: "POST",
                         headers: { 
                           "Content-Type": "application/json",
-                          //"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
+                          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
                          },
                         body: JSON.stringify({ code: decodedText.trim() })
                     }
@@ -137,7 +137,7 @@ async function onScanSuccess(decodedText){
 
             } catch(err){
                 console.error("Error fetching redirect URL:", err);
-                alert(`🚫 Request failed: ${err.message}`);
+                alert(`🚫 Request failed: ${err.message} \n\nData:\n${JSON.stringify(data, null, 2)}`);
             }
         }).catch(err => console.error("Failed to stop scanner:", err));
     }
