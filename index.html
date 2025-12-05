@@ -87,10 +87,10 @@ Html5Qrcode.getCameras().then(cameras => {
 }).catch(err => console.error("Camera access error:", err));
 
 // Handle scan success
-async function onScanSuccess(decodedText){
+async function onScanSuccess(decodedText) {
     console.log("Scanned:", decodedText);
 
-    if(html5QrCode){
+    if (html5QrCode) {
         html5QrCode.stop().then(async () => {
             const resultDiv = document.getElementById("scan-result");
             resultDiv.classList.remove("hidden");
@@ -102,42 +102,41 @@ async function onScanSuccess(decodedText){
                     {
                         method: "POST",
                         headers: { 
-                          "Content-Type": "application/json",
-                          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
-                         },
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
+                        },
                         body: JSON.stringify({ code: decodedText.trim() })
                     }
                 );
 
                 const data = await response.json();
-
                 console.log("Server Response:", data); // Debugging
 
-                // 💡 Detailed error messages
-                if(data.error){
+                // Handle errors
+                if (data.error) {
                     let msg = `❌ Error: ${data.error}`;
-
                     alert(`Scanned text: "${decodedText}"\nLength: ${decodedText.length}`);
-                    if(data.details) msg += `\nDetails: ${data.details}`;
-                    if(data.code) msg += `\nQR: ${data.code}`;
-                    if(data.equipment) msg += `\nEquipment: ${data.equipment}`;
-
+                    if (data.details) msg += `\nDetails: ${data.details}`;
+                    if (data.code) msg += `\nQR: ${data.code}`;
+                    if (data.equipment) msg += `\nEquipment: ${data.equipment}`;
                     alert(msg);
                     return;
                 }
 
-                if(data.redirect_url){
-                    alert("Redirecting to assigned page...");
-                    setTimeout(() => {
-                        window.location.href = data.redirect_url;
-                    }, 800);
+                // Open the redirect_url in a new popup window
+                if (data.redirect_url) {
+                    window.open(
+                        data.redirect_url, 
+                        "_blank", 
+                        "width=800,height=600,resizable=yes,scrollbars=yes"
+                    );
                 } else {
                     alert(`⚠ QR found, but redirect_url is missing in database.\n\nData:\n${JSON.stringify(data, null, 2)}`);
                 }
 
-            } catch(err){
+            } catch (err) {
                 console.error("Error fetching redirect URL:", err);
-                alert(`🚫 Request failed: ${err.message} \n\nData:\n${JSON.stringify(data, null, 2)}`);
+                alert(`🚫 Request failed: ${err.message}`);
             }
         }).catch(err => console.error("Failed to stop scanner:", err));
     }
