@@ -129,7 +129,7 @@ async function onScanSuccess(decodedText){
                         window.location.href = data.redirect_url;
                     }, 800);
                 } else {
-                    alert("⚠ QR found, but redirect_url is missing in database.", data.redirect_url);
+                    alert("⚠ QR found, but redirect_url is missing in database.", data);
                 }
 
             } catch(err){
