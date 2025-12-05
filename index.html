@@ -91,6 +91,13 @@ async function onScanSuccess(decodedText) {
     console.log("Scanned:", decodedText);
 
     if (html5QrCode) {
+        // Immediately open a popup (temporary blank) to satisfy browser popup policy
+        const popup = window.open("", "_blank", "width=800,height=600,resizable=yes,scrollbars=yes");
+        if (!popup) {
+            alert("⚠ Popup blocked! Please allow popups for this site.");
+            return;
+        }
+
         html5QrCode.stop().then(async () => {
             const resultDiv = document.getElementById("scan-result");
             resultDiv.classList.remove("hidden");
@@ -115,28 +122,28 @@ async function onScanSuccess(decodedText) {
                 // Handle errors
                 if (data.error) {
                     let msg = `❌ Error: ${data.error}`;
-                    alert(`Scanned text: "${decodedText}"\nLength: ${decodedText.length}`);
                     if (data.details) msg += `\nDetails: ${data.details}`;
                     if (data.code) msg += `\nQR: ${data.code}`;
                     if (data.equipment) msg += `\nEquipment: ${data.equipment}`;
                     alert(msg);
+
+                    // Close the popup if error
+                    popup.close();
                     return;
                 }
 
-                // Open the redirect_url in a new popup window
+                // Load the redirect_url in the previously opened popup
                 if (data.redirect_url) {
-                    window.open(
-                        data.redirect_url, 
-                        "_blank", 
-                        "width=800,height=600,resizable=yes,scrollbars=yes"
-                    );
+                    popup.location.href = data.redirect_url;
                 } else {
                     alert(`⚠ QR found, but redirect_url is missing in database.\n\nData:\n${JSON.stringify(data, null, 2)}`);
+                    popup.close();
                 }
 
             } catch (err) {
                 console.error("Error fetching redirect URL:", err);
                 alert(`🚫 Request failed: ${err.message}`);
+                popup.close();
             }
         }).catch(err => console.error("Failed to stop scanner:", err));
     }
