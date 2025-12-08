@@ -15,7 +15,7 @@
     <h1 id="equipName">Loading...</h1>
     <p id="equipSubtext">Fetching equipment details...</p>
     <p id="equipDescription" style="font-style:italic;">—</p>
-    <!-- Debugging: show raw JSON response (optional) -->
+    <!-- Debugging: show raw JSON response -->
     <pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>
   </header>
 
@@ -57,34 +57,38 @@ async function fetchEquipment() {
       }
     );
 
-    const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { error: "Invalid JSON response", raw: text };
-    }
+    const data = await response.json();
 
-    if (!response.ok || data.error) {
-      document.getElementById("equipName").innerText = "Error";
-      document.getElementById("equipSubtext").innerText = `Request failed: ${response.status} ${response.statusText}`;
-      document.getElementById("equipDescription").innerText = data.error ?? "Unknown error";
+    // Show debug info
+    document.getElementById("debugResponse").innerText = JSON.stringify({
+      status: response.status,
+      statusText: response.statusText,
+      body: data
+    }, null, 2);
+
+    if (!response.ok || !data || data.error || (Array.isArray(data) && data.length === 0)) {
+      document.getElementById("equipName").innerText = "Not Found";
+      document.getElementById("equipSubtext").innerText = data?.error ?? "QR code not recognized.";
+      document.getElementById("equipDescription").innerText = "";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // Update header with equipment info
-    document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
-    document.getElementById("equipSubtext").innerText = data.type ?? "Details";
-    document.getElementById("equipDescription").innerText = data.description ?? "No description";
+    // Pick first row if array
+    const row = Array.isArray(data) ? data[0] : data;
 
-    // Show card as well (optional)
+    // Update header
+    document.getElementById("equipName").innerText = row.equipment_name ?? "Equipment";
+    document.getElementById("equipSubtext").innerText = row.type ?? "Details";
+    document.getElementById("equipDescription").innerText = row.description ?? "No description";
+
+    // Show card
     document.getElementById("infoCard").style.display = "block";
-    document.getElementById("description").innerText = data.description ?? "No description";
+    document.getElementById("description").innerText = row.description ?? "No description";
 
-    if (data.image_url) {
+    if (row.image_url) {
       const img = document.getElementById("image");
-      img.src = data.image_url;
+      img.src = row.image_url;
       img.style.display = "block";
     }
 
@@ -92,6 +96,8 @@ async function fetchEquipment() {
     document.getElementById("equipName").innerText = "Error";
     document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
     document.getElementById("equipDescription").innerText = "";
+    document.getElementById("notFound").style.display = "block";
+    document.getElementById("debugResponse").innerText = JSON.stringify(err, null, 2);
   }
 }
 
