@@ -14,9 +14,6 @@
   <header class="w3-container w3-center w3-padding-32"> 
     <h1 id="equipName">Loading...</h1>
     <p id="equipSubtext">Fetching equipment details...</p>
-    <p id="equipDescription" style="font-style:italic;">—</p>
-    <!-- Debugging: show raw JSON response (optional) -->
-    <!--<pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>-->
   </header>
 
   <div class="w3-card-4 w3-white w3-margin" id="infoCard" style="display:none;">
@@ -40,7 +37,6 @@ const scannedCode = urlParams.get("code");
 if (!scannedCode) {
   document.getElementById("equipName").innerText = "Invalid Access";
   document.getElementById("equipSubtext").innerText = "No QR code was provided.";
-  document.getElementById("equipDescription").innerText = "";
 }
 
 async function fetchEquipment() {
@@ -57,29 +53,19 @@ async function fetchEquipment() {
       }
     );
 
-    const text = await response.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { error: "Invalid JSON response", raw: text };
-    }
+    const data = await response.json();
 
     if (!response.ok || data.error) {
-      document.getElementById("equipName").innerText = "Error";
-      document.getElementById("equipSubtext").innerText = `Request failed: ${response.status} ${response.statusText}`;
-      document.getElementById("equipDescription").innerText = data.error ?? "Unknown error";
+      document.getElementById("equipName").innerText = "Not Found";
+      document.getElementById("equipSubtext").innerText = data.error ?? "QR code not recognized.";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // Update header with equipment info
+    // Success: fill UI using exact column names
+    document.getElementById("infoCard").style.display = "block";
     document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
     document.getElementById("equipSubtext").innerText = data.type ?? "Details";
-    document.getElementById("equipDescription").innerText = data.description ?? "No description";
-
-    // Show card as well (optional)
-    document.getElementById("infoCard").style.display = "block";
     document.getElementById("description").innerText = data.description ?? "No description";
 
     if (data.image_url) {
@@ -91,7 +77,7 @@ async function fetchEquipment() {
   } catch (err) {
     document.getElementById("equipName").innerText = "Error";
     document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
-    document.getElementById("equipDescription").innerText = "";
+    document.getElementById("notFound").style.display = "block";
   }
 }
 
