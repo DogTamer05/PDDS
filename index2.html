@@ -14,8 +14,9 @@
   <header class="w3-container w3-center w3-padding-32"> 
     <h1 id="equipName">Loading...</h1>
     <p id="equipSubtext">Fetching equipment details...</p>
-    <!-- Debugging: show raw JSON response -->
-    <pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>
+    <p id="equipDescription" style="font-style:italic;">—</p>
+    <!-- Debugging: show raw JSON response (optional) -->
+    <!--<pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>-->
   </header>
 
   <div class="w3-card-4 w3-white w3-margin" id="infoCard" style="display:none;">
@@ -36,11 +37,10 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedCode = urlParams.get("code");
 
-console.log("QR Code received:", scannedCode);
-
 if (!scannedCode) {
   document.getElementById("equipName").innerText = "Invalid Access";
   document.getElementById("equipSubtext").innerText = "No QR code was provided.";
+  document.getElementById("equipDescription").innerText = "";
 }
 
 async function fetchEquipment() {
@@ -57,32 +57,29 @@ async function fetchEquipment() {
       }
     );
 
-    const text = await response.text(); // read raw text first
+    const text = await response.text();
     let data;
     try {
-      data = JSON.parse(text); // try parsing JSON
+      data = JSON.parse(text);
     } catch {
       data = { error: "Invalid JSON response", raw: text };
     }
 
-    // Show full debug in UI
-    document.getElementById("debugResponse").innerText = JSON.stringify({
-      status: response.status,
-      statusText: response.statusText,
-      body: data
-    }, null, 2);
-
     if (!response.ok || data.error) {
       document.getElementById("equipName").innerText = "Error";
       document.getElementById("equipSubtext").innerText = `Request failed: ${response.status} ${response.statusText}`;
+      document.getElementById("equipDescription").innerText = data.error ?? "Unknown error";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // Success: fill the UI
-    document.getElementById("infoCard").style.display = "block";
+    // Update header with equipment info
     document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
     document.getElementById("equipSubtext").innerText = data.type ?? "Details";
+    document.getElementById("equipDescription").innerText = data.description ?? "No description";
+
+    // Show card as well (optional)
+    document.getElementById("infoCard").style.display = "block";
     document.getElementById("description").innerText = data.description ?? "No description";
 
     if (data.image_url) {
@@ -92,10 +89,9 @@ async function fetchEquipment() {
     }
 
   } catch (err) {
-    // Catch network errors, etc.
     document.getElementById("equipName").innerText = "Error";
     document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
-    document.getElementById("debugResponse").innerText = JSON.stringify(err, null, 2);
+    document.getElementById("equipDescription").innerText = "";
   }
 }
 
