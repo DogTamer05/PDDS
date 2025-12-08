@@ -88,14 +88,6 @@ Html5Qrcode.getCameras().then(cameras => {
 
 // Handle scan success
 async function onScanSuccess(decodedText) {
-    console.log("Scanned:", decodedText);
-
-    if (html5QrCode) {
-        // Stop the scanner
-        await html5QrCode.stop();
-    }
-
-    // Show scanned text in UI
     const resultDiv = document.getElementById("scan-result");
     resultDiv.classList.remove("hidden");
     resultDiv.innerText = `Scanned: ${decodedText}`;
@@ -105,8 +97,7 @@ async function onScanSuccess(decodedText) {
             "https://ttdahvmsqjfarktnnxui.supabase.co/functions/v1/rapid-endpoint",
             {
                 method: "POST",
-                headers: { 
-                    "Access-Control-Allow-Origin": origin,
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
                 },
@@ -114,25 +105,53 @@ async function onScanSuccess(decodedText) {
             }
         );
 
-        const data = await response.json();
-        console.log("Server Response:", data);
+        // Try to parse JSON body if available
+        let data = null;
+        let text = "";
+        try {
+            text = await response.text();
+            data = JSON.parse(text);
+        } catch (_) {
+            data = null; // parsing failed
+        }
 
-        if (data.error) {
-            alert(`❌ Error: ${data.error}`);
+        if (!response.ok) {
+            alert(
+                `🚫 HTTP error!\n` +
+                `Status: ${response.status} ${response.statusText}\n` +
+                `Response: ${text || "<empty>"}`
+            );
             return;
         }
 
-        // Redirect to index2.html with QR code as a query parameter
-        window.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
-
-    } catch (err) {
-            // Network or other fetch exceptions
+        if (data?.error) {
             alert(
-                `🚨 Fetch exception!\n` +
-                `Message: ${err.message}\n` +
-                `Stack: ${err.stack}`
+                `❌ Server returned error!\n` +
+                `Error: ${data.error}\n` +
+                (data.details ? `Details: ${JSON.stringify(data.details)}` : '') +
+                (data.code ? `\nQR code: ${data.code}` : '') +
+                (data.redirect_url ? `\nRedirect URL: ${data.redirect_url}` : '')
+            );
+            return;
+        }
+
+        if (data?.redirect_url) {
+            window.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
+        } else {
+            alert(
+                `⚠ QR found, but redirect_url missing\n` +
+                `Response Data:\n${JSON.stringify(data || text, null, 2)}`
             );
         }
+
+    } catch (err) {
+        // Network/fetch exceptions
+        alert(
+            `🚨 Fetch failed!\n` +
+            `Message: ${err?.message || "Unknown"}\n` +
+            `Stack: ${err?.stack || "N/A"}`
+        );
+    }
 }
 </script>
 
