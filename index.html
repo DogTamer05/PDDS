@@ -135,7 +135,7 @@ async function onScanSuccess(decodedText) {
 
                 // Load the redirect_url in the previously opened popup
                 if (data.redirect_url) {
-                    popup.location.href = data.redirect_url;
+                    pwindow.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
                 } else {
                     alert(`⚠ QR found, but redirect_url is missing in database.\n\nData:\n${JSON.stringify(data, null, 2)}`);
                     popup.close();
