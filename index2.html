@@ -16,9 +16,20 @@
     <p id="equipSubtext">Fetching equipment details...</p>
     <p id="equipDescription" style="font-style:italic;">—</p>
     <!-- Debugging: show raw JSON response -->
-    <pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>
-  </header>
-
+    <pre id="debugResponse" 
+     style="
+       text-align:left; 
+       min-height:50px;           /* ensures it’s visible even if empty */
+       max-height:200px; 
+       overflow:auto; 
+       background:#f1f1f1; 
+       padding:10px; 
+       border-radius:5px;
+       border:1px solid #ccc;    /* add border to make it obvious */
+       display:block;
+       color: black;
+     ">
+  </pre>
   <div class="w3-card-4 w3-white w3-margin" id="infoCard" style="display:none;">
     <div class="w3-container w3-padding">
       <h2>Equipment Info</h2>
@@ -97,7 +108,11 @@ async function fetchEquipment() {
     document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
     document.getElementById("equipDescription").innerText = "";
     document.getElementById("notFound").style.display = "block";
-    document.getElementById("debugResponse").innerText = JSON.stringify(err, null, 2);
+    document.getElementById("debugResponse").innerText = JSON.stringify({
+      status: response.status,
+      statusText: response.statusText,
+      body: data
+    }, null, 2);
   }
 }
 
