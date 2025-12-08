@@ -136,7 +136,8 @@ async function onScanSuccess(decodedText) {
         }
 
         if (data?.redirect_url) {
-            window.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
+            sessionStorage.setItem("qr_code", decodedText.trim());   // ← Save QR securely
+            window.location.href = "index2.html";  
         } else {
             alert(
                 `⚠ QR found, but redirect_url missing\n` +

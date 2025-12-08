@@ -45,13 +45,16 @@
 </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const scannedCode = urlParams.get("code");
+// Retrieve QR code stored from scanner page
+const scannedCode = sessionStorage.getItem("qr_code");
 
+// If no QR code exists, show error & stop
 if (!scannedCode) {
   document.getElementById("equipName").innerText = "Invalid Access";
-  document.getElementById("equipSubtext").innerText = "No QR code was provided.";
+  document.getElementById("equipSubtext").innerText = "No QR code found in session.";
   document.getElementById("equipDescription").innerText = "";
+} else {
+  fetchEquipment(); // <-- call fetch normally
 }
 
 async function fetchEquipment() {
@@ -68,32 +71,33 @@ async function fetchEquipment() {
       }
     );
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
 
-    // Show debug info
-    document.getElementById("debugResponse").innerText = JSON.stringify({
-      status: response.status,
-      statusText: response.statusText,
-      body: data
-    }, null, 2);
+    // Parse JSON safely
+    try { data = JSON.parse(text); }
+    catch { data = { error: "Invalid JSON", raw: text }; }
 
+    // Always show debug output
+    document.getElementById("debugResponse").innerText =
+      JSON.stringify({ scannedCode, response: {status:response.status}, data }, null, 2);
+
+    // Check response validity
     if (!response.ok || !data || data.error || (Array.isArray(data) && data.length === 0)) {
       document.getElementById("equipName").innerText = "Not Found";
-      document.getElementById("equipSubtext").innerText = data?.error ?? "QR code not recognized.";
-      document.getElementById("equipDescription").innerText = "";
+      document.getElementById("equipSubtext").innerText = data?.error ?? "QR not found";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // Pick first row if array
+    // Use first row if array returned
     const row = Array.isArray(data) ? data[0] : data;
 
-    // Update header
-    document.getElementById("equipName").innerText = row.equipment_name ?? "Equipment";
-    document.getElementById("equipSubtext").innerText = row.type ?? "Details";
+    // Update UI
+    document.getElementById("equipName").innerText = row.equipment_name ?? "No Name";
+    document.getElementById("equipSubtext").innerText = row.type ?? "";
     document.getElementById("equipDescription").innerText = row.description ?? "No description";
 
-    // Show card
     document.getElementById("infoCard").style.display = "block";
     document.getElementById("description").innerText = row.description ?? "No description";
 
@@ -105,18 +109,13 @@ async function fetchEquipment() {
 
   } catch (err) {
     document.getElementById("equipName").innerText = "Error";
-    document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
-    document.getElementById("equipDescription").innerText = "";
+    document.getElementById("equipSubtext").innerText = err.message;
     document.getElementById("notFound").style.display = "block";
-    document.getElementById("debugResponse").innerText = JSON.stringify({
-      status: response.status,
-      statusText: response.statusText,
-      body: data
-    }, null, 2);
+
+    document.getElementById("debugResponse").innerText =
+      `Fetch crashed:\n${err.stack || err}`;
   }
 }
-
-fetchEquipment();
 </script>
 
 </body>
