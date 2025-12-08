@@ -76,28 +76,32 @@ async function fetchEquipment() {
       data = { error: "Invalid JSON response", raw: text };
     }
 
-    // Always write debug info
+    // ALWAYS update debug
     debug.innerText = JSON.stringify({
       status: response.status,
       statusText: response.statusText,
       body: data
     }, null, 2);
 
-    if (!response.ok || data.error) {
+    // If no data or error, still show debug, but display not found
+    if (!response.ok || !data || data.error || data.length === 0) {
       document.getElementById("equipName").innerText = "Not Found";
       document.getElementById("equipSubtext").innerText = data.error ?? "QR code not recognized.";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    document.getElementById("infoCard").style.display = "block";
-    document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
-    document.getElementById("equipSubtext").innerText = data.type ?? "Details";
-    document.getElementById("description").innerText = data.description ?? "No description";
+    // Show the first row if multiple returned
+    const row = Array.isArray(data) ? data[0] : data;
 
-    if (data.image_url) {
+    document.getElementById("infoCard").style.display = "block";
+    document.getElementById("equipName").innerText = row.equipment_name ?? "Equipment";
+    document.getElementById("equipSubtext").innerText = row.type ?? "Details";
+    document.getElementById("description").innerText = row.description ?? "No description";
+
+    if (row.image_url) {
       const img = document.getElementById("image");
-      img.src = data.image_url;
+      img.src = row.image_url;
       img.style.display = "block";
     }
 
