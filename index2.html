@@ -52,22 +52,34 @@ async function fetchEquipment() {
         headers: { 
           "Content-Type": "application/json",
           "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
-         },
-        body: JSON.stringify({ qr: scannedCode }) // ⬅ Matches backend
+        },
+        body: JSON.stringify({ qr: scannedCode })
       }
     );
 
-    const data = await response.json();
-    console.log("Equipment response:", data);
+    const text = await response.text(); // read raw text first
+    let data;
+    try {
+      data = JSON.parse(text); // try parsing JSON
+    } catch {
+      data = { error: "Invalid JSON response", raw: text };
+    }
 
-    if (!data || data.error) {
-      document.getElementById("equipName").innerText = "Not Found";
-      document.getElementById("equipSubtext").innerText = "QR code not recognized.";
+    // Show full debug in UI
+    document.getElementById("debugResponse").innerText = JSON.stringify({
+      status: response.status,
+      statusText: response.statusText,
+      body: data
+    }, null, 2);
+
+    if (!response.ok || data.error) {
+      document.getElementById("equipName").innerText = "Error";
+      document.getElementById("equipSubtext").innerText = `Request failed: ${response.status} ${response.statusText}`;
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // ⬅ data is the row object directly now
+    // Success: fill the UI
     document.getElementById("infoCard").style.display = "block";
     document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
     document.getElementById("equipSubtext").innerText = data.type ?? "Details";
@@ -80,9 +92,10 @@ async function fetchEquipment() {
     }
 
   } catch (err) {
-    console.error(err);
+    // Catch network errors, etc.
     document.getElementById("equipName").innerText = "Error";
-    document.getElementById("equipSubtext").innerText = "Failed to fetch database.";
+    document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
+    document.getElementById("debugResponse").innerText = JSON.stringify(err, null, 2);
   }
 }
 
