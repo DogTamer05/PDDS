@@ -91,62 +91,42 @@ async function onScanSuccess(decodedText) {
     console.log("Scanned:", decodedText);
 
     if (html5QrCode) {
-        // Immediately open a popup (temporary blank) to satisfy browser popup policy
-        // inside onScanSuccess
-        const popup = window.open("about:blank", "_blank", "width=800,height=600");
-        if (!popup) {
-            alert("⚠ Popup blocked! Please allow popups for this site.");
+        // Stop the scanner
+        await html5QrCode.stop();
+    }
+
+    // Show scanned text in UI
+    const resultDiv = document.getElementById("scan-result");
+    resultDiv.classList.remove("hidden");
+    resultDiv.innerText = `Scanned: ${decodedText}`;
+
+    try {
+        const response = await fetch(
+            "https://ttdahvmsqjfarktnnxui.supabase.co/functions/v1/rapid-endpoint",
+            {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
+                },
+                body: JSON.stringify({ code: decodedText.trim() })
+            }
+        );
+
+        const data = await response.json();
+        console.log("Server Response:", data);
+
+        if (data.error) {
+            alert(`❌ Error: ${data.error}`);
             return;
         }
-        
-        html5QrCode.stop().then(async () => {
-            const resultDiv = document.getElementById("scan-result");
-            resultDiv.classList.remove("hidden");
-            resultDiv.innerText = `Scanned: ${decodedText}`;
 
-            try {
-                const response = await fetch(
-                    "https://ttdahvmsqjfarktnnxui.supabase.co/functions/v1/rapid-endpoint",
-                    {
-                        method: "POST",
-                        headers: { 
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
-                        },
-                        body: JSON.stringify({ code: decodedText.trim() })
-                    }
-                );
+        // Redirect to index2.html with QR code as a query parameter
+        window.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
 
-                const data = await response.json();
-                console.log("Server Response:", data); // Debugging
-
-                // Handle errors
-                if (data.error) {
-                    let msg = `❌ Error: ${data.error}`;
-                    if (data.details) msg += `\nDetails: ${data.details}`;
-                    if (data.code) msg += `\nQR: ${data.code}`;
-                    if (data.equipment) msg += `\nEquipment: ${data.equipment}`;
-                    alert(msg);
-
-                    // Close the popup if error
-                    popup.close();
-                    return;
-                }
-
-                // Load the redirect_url in the previously opened popup
-                if (data.redirect_url) {
-                    pwindow.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
-                } else {
-                    alert(`⚠ QR found, but redirect_url is missing in database.\n\nData:\n${JSON.stringify(data, null, 2)}`);
-                    popup.close();
-                }
-
-            } catch (err) {
-                console.error("Error fetching redirect URL:", err);
-                alert(`🚫 Request failed: ${err.message}`);
-                popup.close();
-            }
-        }).catch(err => console.error("Failed to stop scanner:", err));
+    } catch (err) {
+        console.error("Error fetching data:", err);
+        alert(`🚫 Request failed: ${err.message}`);
     }
 }
 </script>
