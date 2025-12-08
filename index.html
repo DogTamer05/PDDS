@@ -126,13 +126,13 @@ async function onScanSuccess(decodedText) {
         window.location.href = `index2.html?code=${encodeURIComponent(decodedText.trim())}`;
 
     } catch (err) {
-        console.error("Error fetching data:", err);
-        alert(
-            `🚫 Request failed!\n` +
-            `Status: ${response.status} ${response.statusText}\n` +
-            `Response Body: ${text}`
-        );
-    }
+            // Network or other fetch exceptions
+            alert(
+                `🚨 Fetch exception!\n` +
+                `Message: ${err.message}\n` +
+                `Stack: ${err.stack}`
+            );
+        }
 }
 </script>
 
