@@ -127,7 +127,11 @@ async function onScanSuccess(decodedText) {
 
     } catch (err) {
         console.error("Error fetching data:", err);
-        alert(`🚫 Request failed: ${err.message}`);
+        alert(
+            `🚫 Request failed!\n` +
+            `Status: ${response.status} ${response.statusText}\n` +
+            `Response Body: ${text}`
+        );
     }
 }
 </script>
