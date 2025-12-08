@@ -106,6 +106,7 @@ async function onScanSuccess(decodedText) {
             {
                 method: "POST",
                 headers: { 
+                    "Access-Control-Allow-Origin": origin,
                     "Content-Type": "application/json",
                     "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0ZGFodm1zcWpmYXJrdG5ueHVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MDc5NzcsImV4cCI6MjA4MDM4Mzk3N30.-zkEnkG8Abr9CA8YrianySfXoZwPnZ31MpsUIuA1-u8"
                 },
