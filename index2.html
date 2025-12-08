@@ -5,17 +5,6 @@
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
 <style>
   .center { text-align:center; }
-  pre { 
-    white-space: pre-wrap; 
-    word-wrap: break-word; 
-    background:#f1f1f1; 
-    padding:10px; 
-    border-radius:5px; 
-    max-height:200px; 
-    overflow:auto; 
-    display:block; 
-    border:1px solid #ccc;
-  }
 </style>
 </head>
 <body class="w3-light-grey">
@@ -25,7 +14,9 @@
   <header class="w3-container w3-center w3-padding-32"> 
     <h1 id="equipName">Loading...</h1>
     <p id="equipSubtext">Fetching equipment details...</p>
-    <pre id="debugResponse">Waiting for API response...</pre>
+    <p id="equipDescription" style="font-style:italic;">—</p>
+    <!-- Debugging: show raw JSON response (optional) -->
+    <pre id="debugResponse" style="text-align:left; max-height:200px; overflow:auto; background:#f1f1f1; padding:10px; border-radius:5px;"></pre>
   </header>
 
   <div class="w3-card-4 w3-white w3-margin" id="infoCard" style="display:none;">
@@ -46,12 +37,10 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedCode = urlParams.get("code");
 
-const debug = document.getElementById("debugResponse");
-
 if (!scannedCode) {
   document.getElementById("equipName").innerText = "Invalid Access";
   document.getElementById("equipSubtext").innerText = "No QR code was provided.";
-  debug.innerText = "No QR code provided in URL parameters.";
+  document.getElementById("equipDescription").innerText = "";
 }
 
 async function fetchEquipment() {
@@ -76,40 +65,33 @@ async function fetchEquipment() {
       data = { error: "Invalid JSON response", raw: text };
     }
 
-    // ALWAYS update debug
-    debug.innerText = JSON.stringify({
-      status: response.status,
-      statusText: response.statusText,
-      body: data
-    }, null, 2);
-
-    // If no data or error, still show debug, but display not found
-    if (!response.ok || !data || data.error || data.length === 0) {
-      document.getElementById("equipName").innerText = "Not Found";
-      document.getElementById("equipSubtext").innerText = data.error ?? "QR code not recognized.";
+    if (!response.ok || data.error) {
+      document.getElementById("equipName").innerText = "Error";
+      document.getElementById("equipSubtext").innerText = `Request failed: ${response.status} ${response.statusText}`;
+      document.getElementById("equipDescription").innerText = data.error ?? "Unknown error";
       document.getElementById("notFound").style.display = "block";
       return;
     }
 
-    // Show the first row if multiple returned
-    const row = Array.isArray(data) ? data[0] : data;
+    // Update header with equipment info
+    document.getElementById("equipName").innerText = data.equipment_name ?? "Equipment";
+    document.getElementById("equipSubtext").innerText = data.type ?? "Details";
+    document.getElementById("equipDescription").innerText = data.description ?? "No description";
 
+    // Show card as well (optional)
     document.getElementById("infoCard").style.display = "block";
-    document.getElementById("equipName").innerText = row.equipment_name ?? "Equipment";
-    document.getElementById("equipSubtext").innerText = row.type ?? "Details";
-    document.getElementById("description").innerText = row.description ?? "No description";
+    document.getElementById("description").innerText = data.description ?? "No description";
 
-    if (row.image_url) {
+    if (data.image_url) {
       const img = document.getElementById("image");
-      img.src = row.image_url;
+      img.src = data.image_url;
       img.style.display = "block";
     }
 
   } catch (err) {
     document.getElementById("equipName").innerText = "Error";
     document.getElementById("equipSubtext").innerText = `Failed to fetch: ${err.message}`;
-    debug.innerText = JSON.stringify(err, null, 2);
-    document.getElementById("notFound").style.display = "block";
+    document.getElementById("equipDescription").innerText = "";
   }
 }
 
