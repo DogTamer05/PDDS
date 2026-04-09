@@ -33,10 +33,24 @@
                 top: 0,
                 behavior: "smooth"
             });
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove("active");
+            }
         });
     });
 
     // Default view
     hideAllSections();
     document.getElementById("intro").style.display = "block";
+
+    // Mobile menu toggle
+    const menuBtn = document.querySelector(".menu-toggle");
+    const sidebar = document.querySelector(".sidebar");
+
+    menuBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("active");
+    });
+
+
 });

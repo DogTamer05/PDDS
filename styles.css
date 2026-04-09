@@ -75,3 +75,45 @@ section {
     display: block;
     margin: 20px auto; /* center with spacing */
 }
+
+/* Menu button (hidden on desktop) */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-size: 24px;
+    background: #2f3640;
+    color: white;
+    border: none;
+    padding: 10px;
+    z-index: 1000;
+    border-radius: 5px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -250px; /* hide sidebar */
+        top: 0;
+        width: 250px;
+        height: 100%;
+        transition: 0.3s;
+        z-index: 999;
+    }
+
+        .sidebar.active {
+            left: 0; /* show sidebar */
+        }
+
+    .content {
+        margin-left: 0; /* full width */
+        padding: 60px 20px; /* space for button */
+    }
+}
