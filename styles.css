@@ -18,7 +18,7 @@ body {
         text-align: center;
         padding: 15px;
         border-bottom: 1px solid #444;
-        color:white;
+        color: white;
     }
 
     .sidebar a {
@@ -32,6 +32,11 @@ body {
             background: #40739e;
         }
 
+        .sidebar a.active {
+            background: #00a8ff;
+            color: white;
+        }
+
 /* Logo container */
 .logo {
     text-align: center;
@@ -39,9 +44,8 @@ body {
     border-bottom: 1px solid #444;
 }
 
-    /* Logo image */
     .logo img {
-        width: 120px; /* adjust size */
+        width: 120px;
         max-width: 100%;
         height: auto;
     }
@@ -61,19 +65,14 @@ section {
     margin-bottom: 40px;
 }
 
-.sidebar a.active {
-    background: #00a8ff;
-    color: white;
-}
-
-/* AMGDS 2000 overview */
+/* AMGDS 2000 overview image */
 .responsive-img {
-    width: 100%; /* fills container */
-    max-width: 100%; /* prevents overflow */
-    height: auto; /* keeps aspect ratio */
-    border-radius: 8px; /* optional: nice rounded corners */
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
     display: block;
-    margin: 20px auto; /* center with spacing */
+    margin: 20px auto;
 }
 
 /* Menu button (hidden on desktop) */
@@ -91,8 +90,8 @@ section {
     border-radius: 5px;
 }
 
-/* Mobile styles */
-@media (max-width: 768px) {
+/* Mobile / landscape styles */
+@media (max-width: 768px), (max-height: 500px) {
 
     .menu-toggle {
         display: block;
@@ -100,20 +99,33 @@ section {
 
     .sidebar {
         position: fixed;
-        left: -250px; /* hide sidebar */
+        left: -250px; /* hidden by default */
         top: 0;
         width: 250px;
         height: 100%;
         transition: 0.3s;
         z-index: 999;
+        overflow-y: auto; /* scroll if sidebar too tall */
     }
 
         .sidebar.active {
-            left: 0; /* show sidebar */
+            left: 0;
         }
 
     .content {
-        margin-left: 0; /* full width */
-        padding: 60px 20px; /* space for button */
+        margin-left: 0; /* full width for mobile */
+        padding: 60px 20px; /* space for menu button */
+        overflow-x: auto;
     }
 }
+
+@media (max-height: 500px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .logo img {
+        width: 80px;
+    }
+}
+
