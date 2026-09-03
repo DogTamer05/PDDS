@@ -36,6 +36,7 @@
 
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove("active");
+                menuBtn.classList.remove("hidden");
             }
         });
     });
@@ -50,6 +51,7 @@
 
     menuBtn.addEventListener("click", () => {
         sidebar.classList.toggle("active");
+        menuBtn.classList.toggle("hidden");
     });
 
 
